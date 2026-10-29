@@ -1,0 +1,76 @@
+{
+  "name": "quota-monitor",
+  "displayName": "Quota Monitor",
+  "publisher": "richter80",
+  "license": "MIT",
+  "description": "Real-time AI agent API quota and token usage monitor",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/richter80/antigravity-quota-monitor.git"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "quota-monitor-container",
+          "title": "Quota Monitor",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "quota-monitor-container": [
+        {
+          "type": "webview",
+          "id": "quota-monitor.sidebarView",
+          "name": "Quota Overview"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "quota-monitor.openMenu",
+        "title": "Open Antigravity Quota Menu",
+        "category": "Antigravity Quota"
+      },
+      {
+        "command": "quota-monitor.toggleCompactMode",
+        "title": "Toggle Compact / Detailed Status Bar Mode",
+        "category": "Antigravity Quota"
+      },
+      {
+        "command": "quota-monitor.refreshQuota",
+        "title": "Refresh Quota",
+        "category": "Antigravity Quota"
+      },
+      {
+        "command": "quota-monitor.focusSidebar",
+        "title": "Focus Quota Dashboard",
+        "category": "Antigravity Quota"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test:validation": "node test/test-client-validation.js",
+    "test": "npm run compile && npm run test:validation"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.3"
+  }
+}

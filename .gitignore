@@ -1,0 +1,11 @@
+node_modules
+out
+*.vsix
+.DS_Store
+
+# Local AI-assistant / indexing tooling (machine-specific, not part of the project)
+.claude/
+.vexp/
+AGENTS.md
+CLAUDE.md
+

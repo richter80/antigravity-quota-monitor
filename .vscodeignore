@@ -1,0 +1,12 @@
+.vscode/**
+.vscode-test/**
+src/**
+tsconfig.json
+**/*.map
+test/**
+.claude/**
+.vexp/**
+.gitignore
+AGENTS.md
+quota monitor.md
+
