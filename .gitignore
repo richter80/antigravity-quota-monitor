@@ -1,6 +1,7 @@
 node_modules
 out
 *.vsix
+!releases/*.vsix
 .DS_Store
 
 # Local AI-assistant / indexing tooling (machine-specific, not part of the project)
