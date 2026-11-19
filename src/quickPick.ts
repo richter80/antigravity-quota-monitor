@@ -42,6 +42,18 @@ export async function showQuotaQuickPick(
         }
     }
 
+    if (payload.modelLimits && payload.modelLimits.length > 0) {
+        items.push({ label: 'MODELS', kind: vscode.QuickPickItemKind.Separator });
+        for (const m of payload.modelLimits) {
+            items.push({
+                label: `${pinnedModels.has(m.name) ? '$(check)' : '$(circle-outline)'} ${m.name}`,
+                description: `${makeProgressBar(m.quotaPercent, 8)} ${m.quotaPercent.toFixed(1)}% left`,
+                detail: formatResetTime(m.resetTime),
+                pinKey: m.name
+            });
+        }
+    }
+
     items.push({ label: 'DISPLAY & SETTINGS', kind: vscode.QuickPickItemKind.Separator });
     const nextMode = mode === 'compact' ? 'Detailed' : 'Compact';
     items.push({

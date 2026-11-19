@@ -1,6 +1,6 @@
 import { execFile } from 'child_process';
 import * as http from 'http';
-import { QuotaPayload, QuotaGroup } from './types';
+import { QuotaPayload, QuotaGroup, ModelQuota } from './types';
 
 export interface AntigravityEndpoint {
     port: number;
@@ -66,6 +66,21 @@ function rpcCall(endpoint: AntigravityEndpoint, path: string): Promise<any> {
     });
 }
 
+// Per-model limits as listed in Antigravity's model picker. Effort variants (Low/Medium/High/XHigh) share one
+// quota, so they collapse into one entry (lowest remaining wins). Models without quota info (unavailable) are skipped.
+export function parseModelLimits(configs: unknown): ModelQuota[] {
+    const byName = new Map<string, ModelQuota>();
+    for (const c of Array.isArray(configs) ? configs : []) {
+        const q = c?.quotaInfo;
+        if (typeof c?.label !== 'string' || typeof q?.resetTime !== 'string') continue;
+        const name = c.label.replace(/\s*\((Low|Medium|High|XHigh)\)$/i, '');
+        const percent = Math.round((Number(q.remainingFraction) || 0) * 1000) / 10; // proto3 JSON omits a 0 fraction
+        const prev = byName.get(name);
+        if (!prev || percent < prev.quotaPercent) byName.set(name, { name, quotaPercent: percent, resetTime: q.resetTime });
+    }
+    return [...byName.values()];
+}
+
 export async function fetchLiveQuota(endpoint: AntigravityEndpoint): Promise<QuotaPayload> {
     const [summaryRes, statusRes] = await Promise.allSettled([
         rpcCall(endpoint, '/exa.language_server_pb.LanguageServerService/RetrieveUserQuotaSummary'),
@@ -95,12 +110,14 @@ export async function fetchLiveQuota(endpoint: AntigravityEndpoint): Promise<Quo
     }));
 
     // Synthesize model quotas from groups for backward compatibility & pinned views
-    const models = groups.flatMap(g => g.buckets.map(b => ({
+    const groupModels: ModelQuota[] = groups.flatMap(g => g.buckets.map(b => ({
         name: `${g.displayName} (${b.window === 'weekly' ? 'Weekly' : '5-Hour'})`,
         quotaPercent: b.percent,
         resetTime: b.resetTime,
         notice: b.disabled ? 'Disabled' : undefined
     })));
+    const modelLimits = parseModelLimits(statusData?.cascadeModelConfigData?.clientModelConfigs);
+    const models = [...groupModels, ...modelLimits];
 
     const planName = statusData?.userTier?.name || statusData?.planStatus?.planInfo?.planName || undefined;
     const email = statusData?.email || '';
@@ -108,6 +125,7 @@ export async function fetchLiveQuota(endpoint: AntigravityEndpoint): Promise<Quo
     return {
         groups,
         models,
+        modelLimits,
         timestamp: new Date().toISOString(),
         isLive: true,
         planName,

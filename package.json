@@ -4,7 +4,7 @@
   "publisher": "richter80",
   "license": "MIT",
   "description": "Real-time AI agent API quota and token usage monitor",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/richter80/antigravity-quota-monitor.git"

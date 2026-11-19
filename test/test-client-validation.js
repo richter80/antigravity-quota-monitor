@@ -43,7 +43,24 @@ assert.deepStrictEqual(
 assert.deepStrictEqual(parseEndpoint('/opt/agy/bin/agy-server --hub-port=5 --csrf_token=l'), { port: 5, token: 'l' }, 'Linux agy binary');
 assert.strictEqual(parseEndpoint('/usr/bin/other-tool --hub-port=6 --csrf_token=x'), null, 'non-Antigravity processes are ignored');
 
-const formatted =formatResetTime(new Date(Date.now() + 3600000 + 60000).toISOString());
+assert.strictEqual(isValidQuotaPayload({ ...validPayload, modelLimits: [{ name: 'X', quotaPercent: 5 }] }), false, 'modelLimits entry without resetTime must be rejected');
+
+const { parseModelLimits } = require('../out/liveDiscovery.js');
+const limits = parseModelLimits([
+    { label: 'Gemini 4 Neon (High)', quotaInfo: { remainingFraction: 0.8, resetTime: 'r1' } },
+    { label: 'Gemini 4 Neon (Low)', quotaInfo: { remainingFraction: 0.5, resetTime: 'r1' } },
+    { label: 'Orchestrator (Neon)', quotaInfo: { remainingFraction: 1, resetTime: 'r2' } },
+    { label: 'Claude Opus 5.5 (Medium)', quotaInfo: { resetTime: 'r3' } },
+    { label: 'Gemini 4 Carbon', quotaInfo: {}, disabled: true }
+]);
+assert.deepStrictEqual(limits, [
+    { name: 'Gemini 4 Neon', quotaPercent: 50, resetTime: 'r1' },
+    { name: 'Orchestrator (Neon)', quotaPercent: 100, resetTime: 'r2' },
+    { name: 'Claude Opus 5.5', quotaPercent: 0, resetTime: 'r3' }
+], 'effort variants collapse to lowest, omitted fraction = 0, unavailable skipped');
+assert.deepStrictEqual(parseModelLimits(undefined), [], 'missing model list');
+
+const formatted = formatResetTime(new Date(Date.now() + 3600000 + 60000).toISOString());
 assert(formatted.startsWith('Resets in:'), 'formatResetTime should format future time');
 
 console.log('✓ All Antigravity Quota validation tests passed!');

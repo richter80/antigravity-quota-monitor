@@ -14,7 +14,7 @@ The extension reads quota directly from the locally running Antigravity language
 2. **Fetch** (`fetchLiveQuota`)
    Two Connect-RPC `POST` calls to `http://127.0.0.1:<port>` with the `X-Codeium-Csrf-Token` header:
    - `LanguageServerService/RetrieveUserQuotaSummary` → quota groups and buckets (required; failure throws).
-   - `LanguageServerService/GetUserStatus` → plan name and account email (optional).
+   - `LanguageServerService/GetUserStatus` → plan name, account email and per-model quota from `cascadeModelConfigData.clientModelConfigs` (optional). `parseModelLimits` merges the effort variants of each model into one entry (lowest remaining wins), treats an omitted fraction as 0, and skips models that have no quota info. The results become `modelLimits` and are also added to `models` so they can be pinned.
    Non-2xx responses and invalid JSON are errors. On any error the cached endpoint is dropped and rediscovered on the next sync.
 3. **Sync loop** (`src/extension.ts`)
    Polls every 60s, plus manual refresh. Only one sync runs at a time. The latest payload is stored in `workspaceState` and restored on startup, after `isValidQuotaPayload` checks it.

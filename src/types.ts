@@ -27,6 +27,7 @@ export interface ModelQuota {
 export interface QuotaPayload {
     groups?: QuotaGroup[];
     models: ModelQuota[];
+    modelLimits?: ModelQuota[]; // per-model limits (also included in models for pinning)
     timestamp: string;
     isLive?: boolean;
     planName?: string;
@@ -41,6 +42,12 @@ export function isValidQuotaPayload(data: unknown): data is QuotaPayload {
         if (!m || typeof m !== 'object') return false;
         if (typeof (m as any).name !== 'string' || typeof (m as any).quotaPercent !== 'number') {
             return false;
+        }
+    }
+    if (obj.modelLimits !== undefined) {
+        if (!Array.isArray(obj.modelLimits)) return false;
+        for (const m of obj.modelLimits as any[]) {
+            if (!m || typeof m.name !== 'string' || typeof m.quotaPercent !== 'number' || typeof m.resetTime !== 'string') return false;
         }
     }
     if (obj.groups !== undefined) {

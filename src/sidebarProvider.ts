@@ -145,18 +145,22 @@ export class QuotaSidebarProvider implements vscode.WebviewViewProvider {
             pill.textContent = lastPayload.isLive ? '● LIVE' + (lastPayload.planName ? ' (' + lastPayload.planName + ')' : '') : '○ SIMULATED';
             pill.className = 'status-pill' + (lastPayload.isLive ? '' : ' offline');
 
+            // labelHtml must already be escaped
+            const row = (pinName, labelHtml, percent, resetTime) => {
+                const pct = Number(percent) || 0;
+                const colorClass = pct <= 10 ? 'danger' : pct <= 25 ? 'warn' : '';
+                return \`<div class="bucket-row"><div class="bucket-header"><span><button class="pin-btn" data-name="\${esc(pinName)}">\${pinnedSet.has(pinName) ? '★' : '☆'}</button>\${labelHtml}</span><span style="font-weight:bold;">\${pct.toFixed(1)}%</span></div><div class="bar-bg"><div class="bar-fill \${colorClass}" style="width:\${pct}%"></div></div><div class="meta"><span class="countdown" data-reset="\${esc(resetTime)}">\${formatCountdown(resetTime)}</span><span>\${pct.toFixed(0)}% left</span></div></div>\`;
+            };
+            const card = (title, rowsHtml) => \`<div class="group-card"><div class="group-title"><span>\${esc(title)}</span></div>\${rowsHtml}</div>\`;
+
             const groups = lastPayload.groups || [];
-            container.innerHTML = groups.map(g => {
-                const bucketHtml = g.buckets.map(b => {
-                    const fullName = g.displayName + ' (' + (b.window === 'weekly' ? 'Weekly' : '5-Hour') + ')';
-                    const isPinned = pinnedSet.has(fullName);
-                    const pct = Number(b.percent) || 0;
-                    const colorClass = pct <= 10 ? 'danger' : pct <= 25 ? 'warn' : '';
-                    const disabledTag = b.disabled ? ' <span class="disabled-note">(Disabled)</span>' : '';
-                    return \`<div class="bucket-row"><div class="bucket-header"><span><button class="pin-btn" data-name="\${esc(fullName)}">\${isPinned ? '★' : '☆'}</button>\${b.window === 'weekly' ? 'Weekly limit' : '5-hour limit'}\${disabledTag}</span><span style="font-weight:bold;">\${pct.toFixed(1)}%</span></div><div class="bar-bg"><div class="bar-fill \${colorClass}" style="width:\${pct}%"></div></div><div class="meta"><span class="countdown" data-reset="\${esc(b.resetTime)}">\${formatCountdown(b.resetTime)}</span><span>\${pct.toFixed(0)}% left</span></div></div>\`;
-                }).join('');
-                return \`<div class="group-card"><div class="group-title"><span>\${esc(g.displayName)}</span></div>\${bucketHtml}</div>\`;
-            }).join('');
+            const modelLimits = lastPayload.modelLimits || [];
+            container.innerHTML = groups.map(g => card(g.displayName, g.buckets.map(b => {
+                const fullName = g.displayName + ' (' + (b.window === 'weekly' ? 'Weekly' : '5-Hour') + ')';
+                const disabledTag = b.disabled ? ' <span class="disabled-note">(Disabled)</span>' : '';
+                return row(fullName, (b.window === 'weekly' ? 'Weekly limit' : '5-hour limit') + disabledTag, b.percent, b.resetTime);
+            }).join(''))).join('')
+                + (modelLimits.length ? card('Models', modelLimits.map(m => row(m.name, esc(m.name), m.quotaPercent, m.resetTime)).join('')) : '');
 
             document.querySelectorAll('.pin-btn').forEach(b => {
                 b.onclick = () => vscode.postMessage({ command: 'togglePin', name: b.getAttribute('data-name') });

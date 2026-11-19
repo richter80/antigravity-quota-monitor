@@ -10,3 +10,4 @@ test/**
 AGENTS.md
 quota monitor.md
 
+.agents/**

@@ -78,12 +78,14 @@ export class QuotaStatusBar implements vscode.Disposable {
     }
 
     private formatShortName(name: string): string {
-        return name
-            .replace('Gemini 4 Argon (Weekly)', 'Argon: ')
-            .replace('Gemini Models (Weekly)', 'Gemini [Wk]: ')
-            .replace('Gemini Models (5-Hour)', 'Gemini [5h]: ')
-            .replace('Claude and GPT models (Weekly)', 'Claude/GPT [Wk]: ')
-            .replace('Claude and GPT models (5-Hour)', 'Claude/GPT [5h]: ');
+        const short: Record<string, string> = {
+            'Gemini 4 Argon (Weekly)': 'Argon',
+            'Gemini Models (Weekly)': 'Gemini [Wk]',
+            'Gemini Models (5-Hour)': 'Gemini [5h]',
+            'Claude and GPT models (Weekly)': 'Claude/GPT [Wk]',
+            'Claude and GPT models (5-Hour)': 'Claude/GPT [5h]'
+        };
+        return `${short[name] ?? name}: `;
     }
 
     public setDisconnected(reason = 'Antigravity daemon not detected'): void {

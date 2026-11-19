@@ -19,12 +19,13 @@ See your Antigravity AI model quota without leaving the editor. This VS Code ext
 
 ### Quota menu (quick pick)
 - Lists every model group and limit window, each with a progress bar, % remaining and time until reset.
+- A **Models** section lists each model from Antigravity's model picker (Gemini 4 Neon, Argon, Hydrogen, Orchestrator, Gemini 3.8 Flash, Claude Opus/Sonnet, GPT-OSS…) with its own remaining quota. Effort variants (Low/Medium/High/XHigh) share one quota, so each model appears once.
 - Select a limit to **pin or unpin** it in the status bar. At least one limit stays pinned.
 - Actions: switch between compact and detailed mode, open the sidebar, refresh now.
 
 ### Sidebar dashboard
 - Find it under **Quota Monitor** in the Activity Bar.
-- Shows one card per model group, with a coloured bar for each limit and a live **reset countdown** that updates every second.
+- Shows one card per model group, plus a **Models** card for the individual models, with a coloured bar for each limit and a live **reset countdown** that updates every second.
 - ★ / ☆ buttons pin or unpin a limit.
 - Toolbar buttons: **Refresh**, **Menu**, **Mode**.
 - A status pill shows whether data is `LIVE` and which plan you're on, or `NO DATA` with the reason and a retry button.
@@ -68,10 +69,10 @@ If discovery doesn't work on macOS or Linux, please [open an issue](https://gith
 
 The extension isn't on the Marketplace yet. To install it from a `.vsix` file:
 
-1. Download [`releases/quota-monitor-0.0.1.vsix`](https://github.com/richter80/antigravity-quota-monitor/raw/main/releases/quota-monitor-0.0.1.vsix), or build it yourself (see [Development](#development)).
+1. Download [`releases/quota-monitor-0.0.2.vsix`](https://github.com/richter80/antigravity-quota-monitor/raw/main/releases/quota-monitor-0.0.2.vsix), or build it yourself (see [Development](#development)).
 2. Install it:
    ```sh
-   code --install-extension quota-monitor-0.0.1.vsix
+   code --install-extension quota-monitor-0.0.2.vsix
    ```
    Or, in the Extensions view, open the **…** menu and choose **Install from VSIX…**.
 
@@ -80,7 +81,7 @@ The extension isn't on the Marketplace yet. To install it from a `.vsix` file:
 1. **Discovery.** The extension looks at the running Antigravity process's command line to find its local port and session token. On Windows it uses PowerShell (`Get-CimInstance`); on macOS and Linux it uses `ps`.
 2. **Fetch.** Every 60 seconds it sends two requests to that service on `127.0.0.1`:
    - `RetrieveUserQuotaSummary` returns the quota groups and limits.
-   - `GetUserStatus` returns the plan name and account email.
+   - `GetUserStatus` returns the plan name, account email and per-model quota.
 3. **Display.** The result updates the status bar, the menu and the sidebar.
 
 ### Privacy & security
